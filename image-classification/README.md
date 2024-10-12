@@ -88,5 +88,5 @@ layers.BatchNormalization()
 - **Loss**: The model maintained an average loss of **0.0141**
 
 ![VGG16_result_graph](https://github.com/danielcoblentz/Image-classification-using-VGG16/blob/d989ed291b29ded1e0fafb0072e1edb852bfc157/VGG16_result_graph.png)
-<p align="center">Figure 3: VGG16 result graph</p>
+<p align="center">Figure 3: VGG16 graph</p>
 
