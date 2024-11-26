@@ -238,7 +238,7 @@ columns = ["Epoch", "Accuracy", "Loss", "Val Accuracy", "Val Loss"]
 df = pd.DataFrame(results, columns=columns)
 
 # Save the results to a CSV file
-df.to_csv("training_results_newm.csv", index=False)
+df.to_csv("training_results_1.csv", index=False)
 
 # Display the DataFrame
 print(df)
@@ -255,5 +255,5 @@ plt.ylabel("Accuracy")
 plt.legend(loc="lower right")
 
 # Save the graph to a file
-plt.savefig("accuracy_over_epochs_newm.png")
+plt.savefig("accuracy_over_epochs_1.png")
 plt.show()

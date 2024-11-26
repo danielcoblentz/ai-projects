@@ -108,7 +108,7 @@ GestureNetRes Model Results
 While slightly less accurate overall at 85%, this model excelled in specific categories such as 'eight' and 'one', suggesting potential areas for further fine-tuning.
 
 ## Installation and Setup
-1) Clone the Repository: Begin by cloning the repository to your local machine to get all the necessary files.
+1) Clone the Repository: Begin by cloning the repository to your local machine to get all the necessary files:
 ```
 https://github.com/danielcoblentz/ASL-Recognition-with-CNN
 ```
@@ -117,18 +117,18 @@ https://github.com/danielcoblentz/ASL-Recognition-with-CNN
 ```
 conda activate [conda_env_name]
 ```
-3) navigate to the directorty + train model
+3) navigate to the directorty + train model:
 after navigating to hte correct folder run hte following in the terminal.
 ```
 python train_model.py -c config/config.json -f2 -m1
 ```
 f1 correpsonds to the  first RGB image dataset
-f2 correposnds to hte second Greyscale image dataset
+f2 correposnds to the second Greyscale image dataset
 
 m1 correopsnds to model 1 (gesturenet)
 m2 correopsnds to model 2 (gesturenetres)
 
-4) once the model is trained navigate to the main program `recognize.py`
+4) once the model is trained navigate to the main program `recognize.py`:
 run hte following in the terminal:
 ```
 python recogize.py
