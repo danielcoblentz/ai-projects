@@ -33,7 +33,7 @@
 	// epochs to train for
 	"init_lr": 1e-3,
 	"bs": 8,
-	"num_epochs": 75,
+	"num_epochs": 100,
 
 	// path to the trained gesture recognition model and the label
 	// binarizer
