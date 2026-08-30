@@ -4,7 +4,7 @@
 
 A Convolutional Neural Network (ConvNet/CNN) is a deep learning algorithm designed to process input images by assigning learnable weights and biases to different features or objects within the image, enabling it to distinguish one from another. In image recognition, these networks are particularly effective because they systematically identify and prioritize the most informative parts of an image, making them powerful tools for tasks such as object detection, facial recognition, and automated image labeling.
 
-![CNN Base Architecture](https://github.com/danielcoblentz/Image-classification-using-VGG16/blob/67d47fda791a1b75400864705cf67dac0a3b3e5f/CNN%20base%20architexture.png?raw=true "CNN Base Architecture")
+![CNN Base Architecture](CNN-base-architecture.png "CNN Base Architecture")
 <p align="center">Figure 1: CNN Base Architecture</p>
 
 
@@ -22,7 +22,7 @@ This project leverages Convolutional Neural Networks, specifically the VGG16 mod
 - **GPU**: Google Colab A100
 
 ## Models Used
-![VGG16 Architecture](https://github.com/danielcoblentz/Image-classification-using-VGG16/blob/fa02d8a4d449ed91cd636a7d099a12c7e9840df9/VGG16%20architecture.png?raw=true "VGG16 Architecture")
+![VGG16 Architecture](VGG16%20architecture.png "VGG16 Architecture")
 <p align="center">Figure 2: VGG16 Architecture</p>
 
 
@@ -92,6 +92,6 @@ layers.BatchNormalization()
 This project has no held-out test set, so 99.07% is validation accuracy at the best epoch rather than test accuracy.
 The same 6,000 images were used for early stopping and best-weight selection, so treat the figure as optimistic for unseen data.
 
-![VGG16_result_graph](https://github.com/danielcoblentz/Image-classification-using-VGG16/blob/d989ed291b29ded1e0fafb0072e1edb852bfc157/VGG16_result_graph.png)
+![VGG16_result_graph](VGG16_result_graph.png)
 <p align="center">Figure 3: VGG16 graph</p>
 
