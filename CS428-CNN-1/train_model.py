@@ -61,7 +61,8 @@ elif int(model_id) == 2:
 elif int(model_id) == 3:
     print("MobileNetV3")
 else:
-    raise argparse.ArgumentTypeError("%s is an invalid int value -- model input error" % value)
+    raise argparse.ArgumentTypeError(
+        "%s is not a valid model id, expected 1, 2 or 3" % model_id)
 
 # platform recognition
 os_name = platform.system()
