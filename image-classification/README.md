@@ -14,9 +14,10 @@ This project leverages Convolutional Neural Networks, specifically the VGG16 mod
 ## Dataset Information
 
 - **Link**: [Hand Gesture Recognition Database](https://www.kaggle.com/datasets/gti-upm/leapgestrecog)
-- **Training size**: 20,000 images
-- **Validation size**: 6,000 images
-- **Test size**: 14,000 images
+- **Total images**: 20,000 across 10 classes
+- **Training split**: 14,000 images (70%)
+- **Validation split**: 6,000 images (30%)
+- **Held-out test set**: none, the data is split into training and validation only
 - **Total size**: 2 GB
 - **GPU**: Google Colab A100
 
@@ -84,8 +85,12 @@ layers.BatchNormalization()
 
 ## Results and Performance
 
-- **Accuracy**: Our model achieved an accuracy of **.9907%** 
-- **Loss**: The model maintained an average loss of **0.0141**
+- **Validation accuracy**: **99.07%** on the 6,000 image validation split
+- **Validation loss**: **0.0141**
+- **Epochs**: training ran 7 of a maximum 20 before early stopping halted it, and the best weights (epoch 4, the lowest validation loss) were restored
+
+This project has no held-out test set, so 99.07% is validation accuracy at the best epoch rather than test accuracy.
+The same 6,000 images were used for early stopping and best-weight selection, so treat the figure as optimistic for unseen data.
 
 ![VGG16_result_graph](https://github.com/danielcoblentz/Image-classification-using-VGG16/blob/d989ed291b29ded1e0fafb0072e1edb852bfc157/VGG16_result_graph.png)
 <p align="center">Figure 3: VGG16 graph</p>
