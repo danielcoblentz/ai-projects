@@ -9,6 +9,33 @@ Hand gesture recognition is a critical component in human-computer interaction, 
 ![Sample Hand Gestures](/images/hand_gesture.png)
 <p align="center">Figure 1: ASL hand gestures</p>
 
+## Attribution
+The scaffolding for this project is not original work.
+It comes from Adrian Rosebrock's PyImageSearch gesture recognition code, published as the gesture recognition material in *Raspberry Pi for Computer Vision*, where the same capture and inference loop drives a gesture passcode security system.
+`CS428-CNN-1/pyimagesearch/utils/__init__.py` still carries his `__author__` tag.
+What this project adds is the model architecture work, the training pipeline and the dataset.
+
+His code, kept here essentially unchanged:
+
+- `CS428-CNN-1/pyimagesearch/utils/conf.py` and `pyimagesearch/utils/__init__.py`, the JSON configuration loader
+- `CS428-CNN-1/pyimagesearch/notifications/`, the Twilio SMS notifier from the security system, unused here
+- `CS428-CNN-1/pyimagesearch/nn/gesturenet.py`, the baseline GestureNet architecture
+
+Adapted from that same source rather than written from scratch:
+
+- `CS428-CNN-1/gather_examples.py`, the webcam capture loop and the key-to-label mappings; the Canny edge filtering is ours
+- `CS428-CNN-1/recognize.py` and `CS428-CNN-1/recognize_tflite.py`, the live capture, ROI extraction and consecutive-frame voting loop
+- `CS428-CNN-1/config/config.json`, the configuration layout
+- `CS428-CNN-1/pyimagesearch/nn/gesturenetres.py`, built by adding residual connections to GestureNet
+
+Written for this project:
+
+- the residual blocks in `gesturenetres.py`, with 1x1 convolution shortcut projections and HeNormal initialisation
+- the MobileNetV3Small branch, the ExponentialDecay learning rate schedule and the model selection flag in `train_model.py`
+- the filtered against unfiltered dataset ablation behind the `--filter` flag, and the dataset itself
+- TensorFlow Lite export in `tflite_convert.py` and the TFLite inference path in `recognize_tflite.py`
+- `figure.py` and `helper_program/`, for plotting and for parsing training logs
+
 ## Technologies
 - Python: Version 3.10
 - TensorFlow: Version 2.10.0
