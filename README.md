@@ -1,6 +1,6 @@
 # ASLConnect-ASL-Recognition-with-CNN
 ## Abstract
-This project implements convolutional neural network models to recognize hand gestures representing numbers 0-9 in American Sign Language (ASL). Two model architectures, GestureNet and GestureNetRes, are developed and trained using TensorFlow and Keras. The models are evaluated on a custom dataset of grayscale and RGB images, achieving an accuracy of up to 95%. those models are then used to classify handgestures by the user in a seperate program
+This project implements convolutional neural network models to recognize hand gestures representing numbers 0-9 in American Sign Language (ASL). Two model architectures, GestureNet and GestureNetRes, are developed and trained using TensorFlow and Keras, alongside a MobileNetV3Small baseline. The models are evaluated on a custom dataset of grayscale and RGB images, reaching 95% accuracy on the held-out split. A trained model is then loaded by a separate program that classifies the user's hand gestures from a webcam.
 
 ## Overview
 Hand gesture recognition is a critical component in human-computer interaction, particularly for enabling communication through sign language. This project focuses on building and training CNN models to accurately classify ASL hand gestures. The models are trained on a dataset of images collected and processed specifically for this task.
@@ -37,20 +37,20 @@ Written for this project:
 - `figure.py` and `helper_program/`, for plotting and for parsing training logs
 
 ## Technologies
-- Python: Version 3.10
-- TensorFlow: Version 2.10.0
-- Keras: Integrated with TensorFlow 2.10.0
-- NumPy: For numerical computations
-- OpenCV: For image processing
-- Matplotlib: For plotting and visualization
-- Scikit-learn: For machine learning utilities
-Features
+- Python 3.10
+- TensorFlow 2.10.0 or newer, with the bundled Keras; `train_model.py` checks the version at start-up
+- NumPy, for numerical computations
+- OpenCV and imutils, for image processing and webcam capture
+- Matplotlib and pandas, for plotting the training curves
+- scikit-learn, for the train/test split, label binarisation and the classification report
+- json-minify, required by the configuration loader
 
 ## Data Collection and Preprocessing
 The data collection and preprocessing stages are critical in ensuring the models train on high-quality, representative data. Here's how we approached these stages:
 
 - Dataset Source: We use the American Sign Language Digit Dataset available on Kaggle, which includes images of hand gestures representing digits 0-9.
-- Image Acquisition: Besides the predefined dataset, we developed gather_examples.py, a script that allows users to capture images of their hand gestures using a webcam. This script guides users through capturing a balanced dataset, ensuring each gesture is well-represented.
+- Image Acquisition: Besides the predefined dataset, `gather_examples.py` captures extra examples from a webcam. It draws a fixed capture box, runs Canny edge detection over it, and writes the result to `datasets/raw_hand_gesture_dataset/<label>/` when you press the digit key for the gesture you are holding. Run it with `python gather_examples.py --conf config/config.json`.
+
 ### Preprocessing Steps:
 
 - Grayscale Conversion: To reduce computational complexity, images are converted to grayscale, reducing the input channels from three (RGB) to one.
@@ -65,18 +65,25 @@ The data collection and preprocessing stages are critical in ensuring the models
 
 
 ## Dataset Information
- - [American Sign Langiage Digit Dataset](https://www.kaggle.com/datasets/rayeed045/american-sign-language-digit-dataset?resource=download)
-- Training size: 5,000 images
-- Validation size: 1,000 images
-- Test size: 4,000 images
-- Total size: 3.02 MB
+Source: [American Sign Language Digit Dataset](https://www.kaggle.com/datasets/rayeed045/american-sign-language-digit-dataset?resource=download)
+
+The copy checked in under `CS428-CNN-1/datasets/` has two variants of the same 10 classes, `zero` through `nine`:
+
+- `no_filter_hand_gesture_dataset`, the RGB images, selected with `--filter 1`
+- `filtered_hand_gesture_dataset`, the grayscale images, selected with `--filter 2`
+
+Each variant holds 500 images per class, so 5,000 images per variant.
+`train_model.py` splits a variant 75/25 with stratification, giving 3,750 training images and 1,250 held out.
+There is no third split: the held-out images are passed as `validation_data` during training and then scored again for the report, which is why the support column below totals 1,250.
 
 ## Model Architecture and Performance
-### Two CNN architectures were developed:
+### Three architectures are selectable with `--model`:
 
-1) GestureNet: A custom lightweight CNN suitable for real-time applications.
+1) GestureNet: A lightweight CNN suitable for real-time applications.
 
-2) GestureNetRes: A more complex architecture incorporating residual connections to enhance learning in deeper networks.
+2) GestureNetRes: The same layout with residual connections, using 1x1 convolution shortcuts so the skip path matches the channel count of each block.
+
+3) MobileNetV3Small: A stock Keras backbone trained from scratch, with a fresh classifier head. No results for it are committed here.
 
                                                                       
                                                                        
@@ -87,8 +94,11 @@ The data collection and preprocessing stages are critical in ensuring the models
 
 
 ## Model results
+Both runs below used the grayscale dataset (`--filter 2`) for 75 epochs at batch size 8.
+The raw terminal output they were transcribed from is kept in `CS428-CNN-1/output/filter2_model1.txt` and `CS428-CNN-1/output/filter2_model2.txt`.
+
 ### Performance results
-filter 2, model 1(Gesturenet model)
+filter 2, model 1 (GestureNet)
 | folder                    | precision         | recall                    | f1-score |  support |
 |---------------------------|-------------------|---------------------------|----------|----------|
 | eight                     | 0.93              | 0.94                      | 0.93     | 125      |
@@ -109,7 +119,7 @@ filter 2, model 1(Gesturenet model)
 
 
 ### Performance results
-filter 2, model 2(Gesturenetres model)
+filter 2, model 2 (GestureNetRes)
 | folder                    | precision         | recall                    | f1-score |  support |
 |---------------------------|-------------------|---------------------------|----------|----------|
 | eight                     | 0.97              | 1.00                      | 0.98     | 125      |
@@ -127,36 +137,46 @@ filter 2, model 2(Gesturenetres model)
 | macro avg                 | 0.89              | 0.85                      | 0.85     | 1250     |
 | weighted avg              | 0.89              | 0.85                      | 0.85     | 1250     |
 
-#### GestureNet Model Results
-Achieved an overall accuracy of 95% on the test set.
-Demonstrated high precision and recall, particularly effective in distinguishing between visually similar gestures like 'six' and 'nine'.
+#### GestureNet
+95% accuracy on the held-out split, with no class scoring below 0.87 f1.
+The weakest classes are 'seven' at 0.87 and 'six' at 0.89; 'zero', 'one' and 'three' are perfect or near it.
 
-GestureNetRes Model Results
-While slightly less accurate overall at 85%, this model excelled in specific categories such as 'eight' and 'one', suggesting potential areas for further fine-tuning.
+#### GestureNetRes
+85% accuracy, so worse overall than the plain CNN despite the residual connections.
+It beats GestureNet on 'eight' and 'seven', but collapses on 'three' (0.42 recall) and over-predicts 'six' (0.53 precision at 1.00 recall), which is where most of the loss comes from.
+The run had not settled: validation accuracy was 0.9856 at epoch 74 and 0.8536 at epoch 75.
+
+#### Known caveat
+Both logs carry Keras's "your input ran out of data" warning at epoch 2.
+The augmentation generator is not repeated, so it is exhausted after one pass and every second epoch trains on a single batch, visible as the alternating 6s and 0s epochs in the logs.
+The reported accuracies are still measured on the held-out split and stand, but the effective number of training epochs is about half of the 75 requested.
 
 ## Installation and Setup
-1) Clone the Repository: Begin by cloning the repository to your local machine to get all the necessary files:
+1) Clone the repository. It carries the full dataset and the trained weights, so the checkout is around 200 MB.
 ```
-https://github.com/danielcoblentz/ASL-Recognition-with-CNN
+git clone https://github.com/danielcoblentz/asl-recognition
 ```
 
-2) Install Dependencies and activate enviorment:
+2) Activate an environment with the dependencies listed under Technologies:
 ```
 conda activate [conda_env_name]
 ```
-3) navigate to the directorty + train model:
-after navigating to hte correct folder run hte following in the terminal.
-```
-python train_model.py -c config/config.json -f2 -m1
-```
-f1 correpsonds to the  first RGB image dataset
-f2 correposnds to the second Greyscale image dataset
 
-m1 correopsnds to model 1 (gesturenet)
-m2 correopsnds to model 2 (gesturenetres)
+3) Change into the project directory. Every script resolves its paths relative to it:
+```
+cd asl-recognition/CS428-CNN-1
+```
 
-4) once the model is trained navigate to the main program `recognize.py`:
-run hte following in the terminal:
+4) Train a model:
 ```
-python recogize.py
+python train_model.py --conf config/config.json --filter 2 --model 1
 ```
+`--filter 1` selects the RGB dataset, `--filter 2` the grayscale one.
+`--model 1` is GestureNet, `--model 2` is GestureNetRes and `--model 3` is MobileNetV3Small.
+Training overwrites `model_path` and `lb_path` from `config/config.json`, which by default are the committed GestureNetRes weights.
+
+5) Run the recogniser against a webcam:
+```
+python recognize.py --conf config/config.json
+```
+To run the TensorFlow Lite build instead, export it once with `python tflite_convert.py --conf config/config.json`, then run `python recognize_tflite.py --conf config/config.json`.
