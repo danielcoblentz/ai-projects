@@ -1,61 +1,39 @@
 {
-
 	"top_left": [20, 10],
 	"bot_right": [220, 210],
 
-	
+	"mappings": {
+		"i": "ignore",
+		"0": "zero",
+		"1": "one",
+		"2": "two",
+		"3": "three",
+		"4": "four",
+		"5": "five",
+		"6": "six",
+		"7": "seven",
+		"8": "eight",
+		"9": "nine"
+	},
 
-  "mappings": {
-  		"i": "ignore",
-  		"0": "zero",
-  		"1": "one",
-  		"2": "two",
-  		"3": "three",
-        "4": "four",
-  		"5": "five",
-  		"6": "six",
-  		"7": "seven",
-  		"8": "eight",
-  		"9": "nine"
-  	},
-
-
-	
 	"raw_dataset_path": "datasets",
-
-	
 	"dataset_path": "datasets/raw_hand_gesture_dataset",
 
-	
 	"init_lr": 1e-3,
 	"bs": 8,
 	"num_epochs": 100,
 
-	
-	
 	"model_path": "output/gesture_reco(f2-Res).h5",
 	"quantized_model_path": "output/gesture_reco(f2-Res).tflite",
 	"lb_path": "output/lb.pickle",
 
-	
 	"assets_path": "assets",
 
-
-	"passcode": ["two", "five", "zero", "nine"],
-
-	
 	"consec_frames": 20,
-
-	
 	"num_seconds": 1,
-
-	
-	"correct_audio": "assets/correct.wav",
-	"incorrect_audio": "assets/incorrect.wav",
 
 	"twilio_sid": "YOUR_TWILIO_SID",
 	"twilio_auth": "YOUR_TWILIO_AUTH_ID",
 	"twilio_to": "YOUR_PHONE_NUMBER",
-	"twilio_from": "YOUR_TWILIO_PHONE_NUMBER",
-	"address_id": "YOUR_ADDRESS"
+	"twilio_from": "YOUR_TWILIO_PHONE_NUMBER"
 }
