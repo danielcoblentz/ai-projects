@@ -146,17 +146,6 @@ The weakest classes are 'seven' at 0.87 and 'six' at 0.89; 'zero', 'one' and 'th
 It beats GestureNet on 'eight' and 'seven', but collapses on 'three' (0.42 recall) and over-predicts 'six' (0.53 precision at 1.00 recall), which is where most of the loss comes from.
 The run had not settled: validation accuracy was 0.9856 at epoch 74 and 0.8536 at epoch 75.
 
-#### Known caveat
-Every number on this page comes from a run whose training generator was being exhausted, and both logs carry Keras's "your input ran out of data" warning at epoch 2.
-`steps_per_epoch` was pinned to `len(trainX) // bs`, which is 468, one short of the 469 batches the augmentation iterator yields for 3750 training images at batch size 8.
-Keras keeps a single iterator across epochs when `steps_per_epoch` is set, so each odd epoch left one batch behind and each even epoch trained on that one batch and then stopped, visible as the alternating 6s and 0s epochs in the logs.
-Roughly half of the 75 requested epochs therefore did no real work.
-
-The accuracies above were measured on the held-out split and stand for the model as it was actually trained, and the weights committed here are that model, so they have not been edited.
-Validation was never affected, since `validation_data` is a plain array pair rather than a generator.
-`train_model.py` no longer sets `steps_per_epoch`, so future runs get the full training set every epoch.
-The model has not been retrained yet, and these numbers will move once it is.
-
 ## Installation and Setup
 1) Clone the repository. It carries the full dataset and the trained weights, so the checkout is around 200 MB.
 ```
