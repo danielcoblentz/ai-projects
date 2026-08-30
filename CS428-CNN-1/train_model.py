@@ -1,9 +1,6 @@
-# USAGE
-# python train_model.py --conf config/config.json --filter 2
+# python train_model.py --conf config/config.json --filter 2 --model 1
 
 # import the necessary packages
-from ctypes.wintypes import PLARGE_INTEGER
-from gc import callbacks
 import cv2
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -19,7 +16,7 @@ import platform
 import tensorflow as tf
 from packaging import version
 from tensorflow.keras.applications import MobileNetV3Small
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Input, Flatten
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dense
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 from tensorflow.keras.optimizers import Adam
@@ -61,7 +58,8 @@ elif int(model_id) == 2:
 elif int(model_id) == 3:
     print("MobileNetV3")
 else:
-    raise argparse.ArgumentTypeError("%s is an invalid int value -- model input error" % value)
+    raise argparse.ArgumentTypeError(
+        "%s is not a valid model id, expected 1, 2 or 3" % model_id)
 
 # platform recognition
 os_name = platform.system()
@@ -73,8 +71,8 @@ else:
 # grab the list of images in our dataset directory, then initialize
 # the list of data (i.e., images) and class labels
 print("[INFO] loading images...")
-raw_dataset_path = conf["raw_dataset_path"]
-imagePaths = list(paths.list_images(raw_dataset_path + filter_folder[int(chosen_filter)-1]))
+datasets_root = conf["datasets_root"]
+imagePaths = list(paths.list_images(datasets_root + filter_folder[int(chosen_filter)-1]))
 imagePaths = [file for file in imagePaths if not os.path.basename(file).startswith('.')]
 data = []
 labels = []
@@ -142,7 +140,8 @@ if int(model_id) == 3 and int(chosen_filter) == 1:
 
 print(model.summary())
 
-# Define a learning rate schedule
+# decay_steps is one epoch's worth of batches and staircase is on, so the
+# learning rate drops by 4% once per epoch rather than on every step
 lr_schedule = ExponentialDecay(
     initial_learning_rate=conf["init_lr"],
     decay_steps=len(trainX) // conf["bs"],
@@ -150,7 +149,6 @@ lr_schedule = ExponentialDecay(
     staircase=True
 )
 
-# Use the learning rate schedule with Adam optimizer
 opt = Adam(learning_rate=lr_schedule)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 

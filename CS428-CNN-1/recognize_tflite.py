@@ -1,6 +1,4 @@
-# python recognize
-# USAGE
-# python recognize_regular.py --conf config/config.json
+# python recognize_tflite.py --conf config/config.json
 
 # import the necessary packages
 import cv2
@@ -8,9 +6,7 @@ from pyimagesearch.utils import Conf
 from imutils.video import VideoStream
 from imutils import paths
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.models import load_model
 from datetime import datetime
-from datetime import date
 import numpy as np
 import argparse
 import imutils
@@ -93,15 +89,9 @@ time.sleep(2.0)
 # classified as
 currentGesture = [None, 0]
 
-# initialize the list of input gestures recognized from the user
-# along with the timestamp of when all four gestures were entered
+# the gesture accepted from the user, with the timestamp it was accepted at
 gestures = []
 enteredTS = None
-
-# initialize two booleans used to indicate (1) whether or not the
-# alarm has been raised and (2) if the correct pass code was entered
-alarm = False
-correct = False
 
 # loop over frames from the video stream
 while True:
@@ -118,12 +108,9 @@ while True:
     clone = frame.copy()
     cv2.rectangle(clone, TOP_LEFT, BOT_RIGHT, (0, 0, 255), 2)
 
-    # only perform hand gesture classification if the current gestures
-    # list is not already full
+    # skip classification while a result is still on screen
     if len(gestures) < 1:
-        # extract the hand gesture capture ROI from the frame, convert
-        # the ROI to grayscale, and then threshold it to reveal a
-        # binary mask of the hand
+        # extract the capture ROI from the frame
         roi = frame[TOP_LEFT[1]:BOT_RIGHT[1], TOP_LEFT[0]:BOT_RIGHT[0]]
         
         # now that we have the hand region we need to resize it to be
@@ -189,27 +176,19 @@ while True:
             cv2.rectangle(canvas, (x, 65), (x + 75, 165),
                (255, 255, 255), -1)
 
-    # initialize the status as "waiting" (implying that we're waiting
-    # for the user to input four gestures) along with the color of the
-    # status text
+    # status shown while waiting for a gesture to be accepted
     status = "Pending Prediction ..."
     color = (255, 255, 255)
 
-    # check to see if there are four gestures in the list, implying
-    # that we need to check the pass code
+    # a gesture has been accepted, so hold the result on screen
     if len(gestures) == 1:
-        # if the timestamp of when the four gestures has been entered
-        # has not been initialized, initialize it
         if enteredTS is None:
             enteredTS = timestamp
 
-        # initialize our status, color, and sound path for the
-        # "correct" pass code
         status = "Prediction Complete"
         color = (0, 255, 0)
-        
-        # after a correct/incorrect pass code we will show the status
-        # for N seconds
+
+        # clear it after num_seconds so the next gesture can be read
         if (timestamp - enteredTS).seconds > conf["num_seconds"]:
             # reset the gestures list, timestamp
             gestures = []
@@ -228,7 +207,7 @@ while True:
     cv2.putText(canvas, status, (10, 25), cv2.FONT_HERSHEY_COMPLEX,
         0.6, color, 1)
 
-    # show ROI we're monitoring, the output frame, and passcode info
+    # show the ROI, the annotated frame and the prediction panel
     showInMovedWindow("ROI", visROI, 601, 0)
     showInMovedWindow("Frame", clone, 100, 0)
     showInMovedWindow("Prediction", canvas, 300, 310)
