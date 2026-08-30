@@ -8,7 +8,6 @@ from imutils import paths
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
 from datetime import datetime
-from datetime import date
 import numpy as np
 import argparse
 import imutils
@@ -16,7 +15,6 @@ import pickle
 import time
 import os
 import re
-import tensorflow as tf
 
 def showInMovedWindow(winname, img, x, y):
     cv2.namedWindow(winname)        # Create a named window

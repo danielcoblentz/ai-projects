@@ -6,17 +6,15 @@ import imutils
 import time
 import cv2
 import os
-import subprocess
-import re
 
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-C", "--Conf", required=True,
+ap.add_argument("-c", "--conf", required=True,
                 help="path to the input configuration file")
 args = vars(ap.parse_args())
 
 # Load the configuration file
-conf = Conf(args["Conf"])
+conf = Conf(args["conf"])
 
 # Grab the top-left and bottom-right (x,y) coordinates for the
 # gesture capture area
@@ -80,7 +78,7 @@ while True:
     # Otherwise, check to see if a key was pressed that we are interested in capturing
     elif key in validkeys:
         # Construct the path to the local subdirectory
-        p = os.path.sep.join([conf["dataset_path"], MAPPINGS[key]])
+        p = os.path.sep.join([conf["capture_output_path"], MAPPINGS[key]])
 
         # If the label subdirectory does not already exist, create it
         if not os.path.exists(p):

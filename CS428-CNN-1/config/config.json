@@ -16,8 +16,8 @@
 		"9": "nine"
 	},
 
-	"raw_dataset_path": "datasets",
-	"dataset_path": "datasets/raw_hand_gesture_dataset",
+	"datasets_root": "datasets",
+	"capture_output_path": "datasets/raw_hand_gesture_dataset",
 
 	"init_lr": 1e-3,
 	"bs": 8,

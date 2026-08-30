@@ -1,8 +1,6 @@
 from pyimagesearch.utils import Conf
 import tensorflow as tf
 import argparse
-import pickle
-import os
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,

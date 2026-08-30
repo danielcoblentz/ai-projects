@@ -6,9 +6,7 @@ from pyimagesearch.utils import Conf
 from imutils.video import VideoStream
 from imutils import paths
 from tensorflow.keras.preprocessing.image import img_to_array
-from tensorflow.keras.models import load_model
 from datetime import datetime
-from datetime import date
 import numpy as np
 import argparse
 import imutils
