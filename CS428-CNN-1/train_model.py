@@ -152,11 +152,13 @@ lr_schedule = ExponentialDecay(
 opt = Adam(learning_rate=lr_schedule)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
-# train the network
+# train the network. The epoch length is left for Keras to read off the
+# augmentation iterator, which is a finite sequence: a hand-set steps_per_epoch of
+# len(trainX) // bs is one batch short of what that iterator yields, and the
+# leftover batch is all the next epoch gets before the iterator runs dry.
 H = model.fit(
     aug.flow(trainX, trainY, batch_size=conf["bs"]),
     validation_data=(testX, testY),
-    steps_per_epoch=len(trainX) // conf["bs"],
     epochs=conf["num_epochs"]
 )
 
