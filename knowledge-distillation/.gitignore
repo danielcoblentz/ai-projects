@@ -1,0 +1,10 @@
+models
+env
+cifar10_images/**/*.png
+cifar10_images/**/*.jpg
+datasets/
+datasets/VQA
+datasets/captioning/captioning_dataset/
+datasets/captioning/captioning_text/
+__pycache__/
+.pytest_cache/
