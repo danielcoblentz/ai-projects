@@ -104,7 +104,7 @@ aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
                          width_shift_range=0.2, height_shift_range=0.2, shear_range=0.15,
                          horizontal_flip=True, fill_mode="nearest")
 
-if int(model_id) == 1 or (int(model_id) == 2 and int(chosen_filter) != 1):
+if int(model_id) == 1 or int(model_id) == 2:
     # the custom cnns take a single grayscale channel
     model = model_name.build(64, 64, 1, len(lb.classes_))
 
