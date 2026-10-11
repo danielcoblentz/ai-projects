@@ -76,8 +76,8 @@ interpreter = tf.lite.Interpreter(model_path=str(conf["quantized_model_path"]))
 interpreter.allocate_tensors()
 
 #get output detils
-input_detils = interpreter.get_input_detils()
-output_detils = interpreter.get_output_detils()
+input_detils = interpreter.get_input_details()
+output_detils = interpreter.get_output_details()
 
 # start the video stream thread
 print("[INFO] starting video stream thread...")
@@ -127,7 +127,7 @@ while True:
 
         # set input tensor to the ROI image
 
-        interpreter.set_trnsor(input_detils[0]['index'], roi)
+        interpreter.set_tensor(input_detils[0]['index'], roi)
 
         # run the inference
         interpreter.invoke()
