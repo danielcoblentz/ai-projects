@@ -218,9 +218,9 @@ Epoch 100/100
 157/157 ━━━━━━━━━━━━━━━━━━━━ 1s 3ms/step 
 """
 
-# only epochs whose metrics line directly follows the epoch header are captured
+# dotall lets a match skip the tensorflow warning lines that sometimes sit between an epoch header and its metrics
 epoch_pattern = re.compile(
-    r"Epoch (\d+)/\d+\n.*?accuracy: ([0-9.]+) - loss: ([0-9.]+) - val_accuracy: ([0-9.]+) - val_loss: ([0-9.]+)"
+    r"Epoch (\d+)/\d+\n.*?accuracy: ([0-9.]+) - loss: ([0-9.]+) - val_accuracy: ([0-9.]+) - val_loss: ([0-9.]+)", re.DOTALL
 )
 
 results = []
