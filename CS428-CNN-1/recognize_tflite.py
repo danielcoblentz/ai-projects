@@ -96,9 +96,8 @@ while True:
     if len(gestures) < 1:
         roi = frame[TOP_LEFT[1]:BOT_RIGHT[1], TOP_LEFT[0]:BOT_RIGHT[0]]
         
-        # grayscale plus adaptive threshold, then 64x64 scaled to [0, 1]
+        # match the training preprocessing: grayscale, 64x64, scaled to [0, 1]
         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        roi = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         visROI = roi.copy()
         roi = cv2.resize(roi, (64, 64))
         roi = roi.astype("float") / 255.0
