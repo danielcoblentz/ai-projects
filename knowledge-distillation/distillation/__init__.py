@@ -1,4 +1,4 @@
-"""Reusable pieces of the knowledge distillation experiments."""
+"""reusable pieces of the knowledge distillation experiments"""
 
 from distillation.losses import (
     distillation_loss,
