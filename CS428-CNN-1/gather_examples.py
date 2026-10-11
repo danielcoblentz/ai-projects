@@ -68,6 +68,11 @@ while True:
         if not os.path.exists(p):
             os.makedirs(p, exist_ok=True)
 
+        # continue after the highest existing capture so a new run never overwrites earlier ones
+        if key not in keycounter:
+            existing = [int(f.split(".")[0]) for f in os.listdir(p) if f.split(".")[0].isdigit()]
+            keycounter[key] = max(existing) + 1 if existing else 0
+
         p = os.path.sep.join([p, "{}.png".format(keycounter.get(key, 0))])
         keycounter[key] = keycounter.get(key, 0) + 1
 
