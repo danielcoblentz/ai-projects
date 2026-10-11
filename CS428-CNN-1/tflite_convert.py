@@ -1,3 +1,4 @@
+# converts the trained keras model to tflite, saved next to it with a .tflite extension
 from pyimagesearch.utils import Conf
 import tensorflow as tf
 import argparse
@@ -6,7 +7,6 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
 	help="path to the input configuration file")
 args = vars(ap.parse_args())
-# load the configuration file
 conf = Conf(args["conf"])
 
 model = tf.keras.models.load_model(str(conf["model_path"]))

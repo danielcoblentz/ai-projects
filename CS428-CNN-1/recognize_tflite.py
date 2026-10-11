@@ -1,6 +1,6 @@
 # python recognize_tflite.py --conf config/config.json
 
-# import the necessary packages
+# same as recognize.py but runs the converted tflite model
 import cv2
 from pyimagesearch.utils import Conf
 from imutils.video import VideoStream
@@ -17,31 +17,24 @@ import re
 import tensorflow as tf
 
 def showInMovedWindow(winname, img, x, y):
-    cv2.namedWindow(winname)        # Create a named window
-    cv2.moveWindow(winname, x, y)   # Move it to (x,y)
+    cv2.namedWindow(winname)
+    cv2.moveWindow(winname, x, y)
     cv2.imshow(winname,img)
 
-# construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
     help="path to the input configuration file")
 args = vars(ap.parse_args())
 
-# load the configuration file
 conf = Conf(args["conf"])
 
 
-# grab the paths to gesture icon images and then initialize the icons
-# dictionary where the key is the gesture name (derived from the image
-# path) and the key is the actual icon image
+# icons shown in the prediction panel, keyed by the gesture label in the filename
 print("[INFO] loading icons...")
 imagePaths = paths.list_images(conf["assets_path"])
 icons = {}
 
-# loop over the image paths
 for imagePath in imagePaths:
-    # extract the gesture name (label) the icon represents from the
-    # filename, load the icon, and then update the icons dictionary
     filename = os.path.basename(imagePath)
     if not re.match(r'^[a-zA-Z0-9_-]+\.png$', filename):
         print(f"[INFO] Skipping file: {filename}")
@@ -49,12 +42,11 @@ for imagePath in imagePaths:
     label = filename.split(".")[0]
     icon = cv2.imread(imagePath)
   
-    # Check if the image was loaded successfully
     if icon is None:
         print(f"[ERROR] Unable to load image: {imagePath}")
         continue
 
-    # Resize the image
+    # 75x100 matches the icon slot on the prediction canvas
     try:
         icon = cv2.resize(icon, (75, 100))
     except cv2.error as e:
@@ -62,60 +54,49 @@ for imagePath in imagePaths:
         continue
     icons[label] = icon
 
-# grab the top-left and and bottom-right (x, y)-coordinates for the
-# gesture capture area
+# corners of the on-screen box the hand must be held in
 TOP_LEFT = tuple(conf["top_left"])
 BOT_RIGHT = tuple(conf["bot_right"])
 
-# load the trained gesture recognizer model and the label binarizer
+# the label binarizer maps output indices back to gesture names
 print("[INFO] loading model...")
 lb = pickle.loads(open(str(conf["lb_path"]), "rb").read())
 
-#tflite
 interpreter = tf.lite.Interpreter(model_path=str(conf["quantized_model_path"]))
 interpreter.allocate_tensors()
 
-#get output detils
 input_detils = interpreter.get_input_details()
 output_detils = interpreter.get_output_details()
 
-# start the video stream thread
+# the sleep gives the camera time to warm up
 print("[INFO] starting video stream thread...")
 vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
-# initialize the current gesture, a bookkeeping variable used to keep
-# track of the number of consecutive frames a given gesture has been
-# classified as
+# [label, count] for the current run of identical predictions, a gesture is
+# only accepted after consec_frames in a row so a flickering prediction is ignored
 currentGesture = [None, 0]
 
 # the gesture accepted from the user, with the timestamp it was accepted at
 gestures = []
 enteredTS = None
 
-# loop over frames from the video stream
 while True:
-    # grab the frame from the threaded video file stream and grab the
-    # current timestamp
     frame = vs.read()
     timestamp = datetime.now()
 
-    # resize the frame and then flip it horizontally
+    # flip so the preview behaves like a mirror
     frame = imutils.resize(frame, width=500)
     frame = cv2.flip(frame, 1)
 
-    # clone the original frame and then draw the gesture capture area
     clone = frame.copy()
     cv2.rectangle(clone, TOP_LEFT, BOT_RIGHT, (0, 0, 255), 2)
 
     # skip classification while a result is still on screen
     if len(gestures) < 1:
-        # extract the capture ROI from the frame
         roi = frame[TOP_LEFT[1]:BOT_RIGHT[1], TOP_LEFT[0]:BOT_RIGHT[0]]
         
-        # now that we have the hand region we need to resize it to be
-        # the same dimensions as what our model was trained on, scale
-        # it to the range [0, 1], and prepare it for classification
+        # grayscale plus adaptive threshold, then 64x64 scaled to [0, 1]
         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         roi = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
         visROI = roi.copy()
@@ -125,54 +106,38 @@ while True:
         roi = np.expand_dims(roi, axis=0)
 
 
-        # set input tensor to the ROI image
 
         interpreter.set_tensor(input_detils[0]['index'], roi)
 
-        # run the inference
         interpreter.invoke()
     
-        # classify the input image
         proba = interpreter.get_tensor(output_detils[0]['index'])
         label = lb.classes_[np.argmax(proba)]
         print(label)
         
-        # check to see if the label from our model matches the label
-        # from the previous classification
         if label == currentGesture[0] and label != "ignore":
-            # increment the current gesture count
             currentGesture[1] += 1
 
-            # check to see if the current gesture has been recognized
-            # for the past N consecutive frames
             if currentGesture[1] == conf["consec_frames"]:
-                # update the gestures list with the predicted label
-                # and then reset the gesture counter
                 gestures.append(label)
                 currentGesture = [None, 0]
 
-        # otherwise, reset the current gesture count
         else:
             currentGesture = [label, 0]
 
-    # initialize the canvas used to draw recognized gestures
+    # side panel showing the accepted gesture's icon and the status
     canvas = np.zeros((250, 350, 3), dtype="uint8")
 
-    # loop over the number of hand gesture input keys
+    # a single icon slot, one gesture is shown at a time
     for i in range(0, 1):
-        # compute the starting x-coordinate of the entered gesture
         x = (i * 100) + 135
 
-        # check to see if an input gesture exists for this index, in
-        # which case we should display an icon
         if len(gestures) > i:
             #print (i)
             canvas[65:165, x:x + 75] = icons[gestures[i]]
 
-        # otherwise, there has not been an input gesture for this icon
         else:
-            # draw a white box on the canvas, indicating that a
-            # gesture has not been entered yet
+            # white placeholder until a gesture is accepted
             cv2.rectangle(canvas, (x, 65), (x + 75, 165),
                (255, 255, 255), -1)
 
@@ -190,11 +155,9 @@ while True:
 
         # clear it after num_seconds so the next gesture can be read
         if (timestamp - enteredTS).seconds > conf["num_seconds"]:
-            # reset the gestures list, timestamp
             gestures = []
             enteredTS = None
 
-    # draw the timestamp and status on the canvas
     ts = timestamp.strftime("%A %d %B %Y %I:%M:%S%p")
     status = "Status: {}".format(status)
     cv2.putText(canvas, ts, (10, canvas.shape[0] - 10),
@@ -207,16 +170,14 @@ while True:
     cv2.putText(canvas, status, (10, 25), cv2.FONT_HERSHEY_COMPLEX,
         0.6, color, 1)
 
-    # show the ROI, the annotated frame and the prediction panel
+    # show the roi, the annotated frame and the prediction panel
     showInMovedWindow("ROI", visROI, 601, 0)
     showInMovedWindow("Frame", clone, 100, 0)
     showInMovedWindow("Prediction", canvas, 300, 310)
     key = cv2.waitKey(1) & 0xFF
 
-    # if the `q` key was pressed, break from the loop
     if key == ord("q"):
         break
 
-# do a bit of cleanup
 cv2.destroyAllWindows()
 vs.stop()
