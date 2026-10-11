@@ -1,6 +1,6 @@
 # python train_model.py --conf config/config.json --filter 2 --model 1
 
-# import the necessary packages
+# trains the asl digit classifier: --filter 1 raw images, 2 grayscale images, --model 1 cnn base, 2 cnn with residual blocks, 3 mobilenetv3
 import cv2
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
@@ -21,13 +21,11 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 from tensorflow.keras.optimizers import Adam
 
-# Check TensorFlow version
 current_version = version.parse(tf.__version__)
 print("tf version: " + tf.__version__)
 desired_version = version.parse("2.10.0")
 print("Version higher than 2.10.0: " + str(current_version >= desired_version))
 
-# construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
 ap.add_argument("-c", "--conf", required=True,
                 help="path to the input configuration file")
@@ -38,15 +36,11 @@ ap.add_argument("-m", "--model", required=True,
                 help="model chosen")
 args = vars(ap.parse_args())
 
-# load the configuration file
 conf = Conf(args["conf"])
-# load the filter type
 chosen_filter = args["filter"]
 print("Filter " + chosen_filter + " has been chosen")
-# load model type
 model_id = args["model"]
 print("Model " + model_id + " has been chosen")
-# model chosen method
 if int(model_id) == 1:
     from pyimagesearch.nn.gesturenet import GestureNet
     model_name = GestureNet
@@ -61,15 +55,13 @@ else:
     raise argparse.ArgumentTypeError(
         "%s is not a valid model id, expected 1, 2 or 3" % model_id)
 
-# platform recognition
+# dataset folder for each --filter value, the grayscale set is made by helper_program/converter.py
 os_name = platform.system()
 if os_name == "Windows":
     filter_folder = ['\\no_filter_hand_gesture_dataset', '\\filtered_hand_gesture_dataset']
 else:
     filter_folder = ['/no_filter_hand_gesture_dataset', '/filtered_hand_gesture_dataset']
 
-# grab the list of images in our dataset directory, then initialize
-# the list of data (i.e., images) and class labels
 print("[INFO] loading images...")
 datasets_root = conf["datasets_root"]
 imagePaths = list(paths.list_images(datasets_root + filter_folder[int(chosen_filter)-1]))
@@ -77,28 +69,23 @@ imagePaths = [file for file in imagePaths if not os.path.basename(file).startswi
 data = []
 labels = []
 
-# loop over the image paths
 for imagePath in imagePaths:
-    # extract the class label from the filename
+    # the class label is the name of the image's parent folder
     label = imagePath.split(os.path.sep)[-2]
 
-    # load the image, convert it to grayscale, and resize it to be a
-    # fixed 64x64 pixels, ignoring aspect ratio
+    # grayscale 64x64 ignoring aspect ratio, except mobilenetv3 on raw images keeps 3 color channels
     image = cv2.imread(imagePath)
     if int(chosen_filter) == 1 and int(model_id) == 3:
         pass
     else:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     image = cv2.resize(image, (64, 64))
-    # update the data and labels lists, respectively
     data.append(image)
     labels.append(label)
 
-# convert the data into a NumPy array, then preprocess it by scaling
-# all pixel intensities to the range [0, 1]
+# scale pixel intensities to [0, 1]
 data = np.array(data, dtype="float") / 255.0
-# reshape the data matrix so that it explicitly includes a channel
-# dimension
+# add the explicit channel dimension the conv layers expect
 if int(chosen_filter) == 1 and int(model_id) == 3:
     data = data.reshape((data.shape[0], data.shape[1], data.shape[2], 3))
 else:
@@ -108,18 +95,17 @@ else:
 lb = LabelBinarizer()
 labels = lb.fit_transform(labels)
 
-# partition the data into training and testing splits using 75% of
-# the data for training and the remaining 25% for testing
+# stratified 75/25 split so every digit class shows up in both sets in proportion
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
                                                   test_size=0.25, stratify=labels, random_state=42)
 
-# construct the training image generator for data augmentation
+# augmentation for a small dataset: shifts, rotations and zooms mimic a hand drifting in the capture box
 aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
                          width_shift_range=0.2, height_shift_range=0.2, shear_range=0.15,
                          horizontal_flip=True, fill_mode="nearest")
 
 if int(model_id) == 1 or (int(model_id) == 2 and int(chosen_filter) != 1):
-    # initialize our gesture recognition CNN and compile it
+    # the custom cnns take a single grayscale channel
     model = model_name.build(64, 64, 1, len(lb.classes_))
 
 if int(model_id) == 3 and int(chosen_filter) != 1:
@@ -140,8 +126,8 @@ if int(model_id) == 3 and int(chosen_filter) == 1:
 
 print(model.summary())
 
-# decay_steps is one epoch's worth of batches and staircase is on, so the
-# learning rate drops by 4% once per epoch rather than on every step
+# decay_steps is about one epoch's worth of batches and staircase is on, so the
+# learning rate drops by 4% roughly once per epoch rather than on every step
 lr_schedule = ExponentialDecay(
     initial_learning_rate=conf["init_lr"],
     decay_steps=len(trainX) // conf["bs"],
@@ -152,27 +138,24 @@ lr_schedule = ExponentialDecay(
 opt = Adam(learning_rate=lr_schedule)
 model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
-# train the network. The epoch length is left for Keras to read off the
-# augmentation iterator, which is a finite sequence: a hand-set steps_per_epoch of
-# len(trainX) // bs is one batch short of what that iterator yields, and the
-# leftover batch is all the next epoch gets before the iterator runs dry.
+# steps_per_epoch is left unset so keras reads it off the finite augmentation
+# iterator: a hand-set len(trainX) // bs is one batch short, which left every
+# other epoch with only the leftover batch before the iterator ran dry
 H = model.fit(
     aug.flow(trainX, trainY, batch_size=conf["bs"]),
     validation_data=(testX, testY),
     epochs=conf["num_epochs"]
 )
 
-# evaluate the network
 print("[INFO] evaluating network...")
 predictions = model.predict(testX, batch_size=conf["bs"])
 print(classification_report(testY.argmax(axis=1),
                             predictions.argmax(axis=1), target_names=lb.classes_))
 
-# serialize the model
 print("[INFO] saving model...")
 model.save(str(conf["model_path"]))
 
-# serialize the label encoder
+# saved so the recognizers can map output indices back to gesture names
 print("[INFO] serializing label encoder...")
 f = open(str(conf["lb_path"]), "wb")
 f.write(pickle.dumps(lb))

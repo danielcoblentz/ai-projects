@@ -3,7 +3,7 @@ import re
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Input log data as a string
+# raw keras console output from a train_model.py run, pasted in to plot it
 log_data = """
   1/468 ━━━━━━━━━━━━━━━━━━━━ 7s 16ms/step - accuracy: 0.3750 - loss: 1.5748/opt/anaconda3/envs/CS428/lib/python3.10/contextlib.py:153: UserWarning: Your input ran out of data; interrupting training. Make sure that your dataset or generator can generate at least `steps_per_epoch * epochs` batches. You may need to use the `.repeat()` function when building your dataset.
   self.gen.throw(typ, value, traceback)
@@ -218,12 +218,11 @@ Epoch 100/100
 157/157 ━━━━━━━━━━━━━━━━━━━━ 1s 3ms/step 
 """
 
-# Regular expression to match the metrics for each epoch
+# only epochs whose metrics line directly follows the epoch header are captured
 epoch_pattern = re.compile(
     r"Epoch (\d+)/\d+\n.*?accuracy: ([0-9.]+) - loss: ([0-9.]+) - val_accuracy: ([0-9.]+) - val_loss: ([0-9.]+)"
 )
 
-# Extract results
 results = []
 for match in epoch_pattern.finditer(log_data):
     epoch = int(match.group(1))
@@ -233,27 +232,22 @@ for match in epoch_pattern.finditer(log_data):
     val_loss = float(match.group(5))
     results.append([epoch, accuracy, loss, val_accuracy, val_loss])
 
-# Convert results to a Pandas DataFrame
 columns = ["Epoch", "Accuracy", "Loss", "Val Accuracy", "Val Loss"]
 df = pd.DataFrame(results, columns=columns)
 
-# Save the results to a CSV file
 df.to_csv("training_results_1.csv", index=False)
 
-# Display the DataFrame
 print(df)
 
-# Plotting Accuracy and Validation Accuracy
+# training vs validation accuracy, to spot overfitting
 plt.figure(figsize=(10, 6))
 plt.plot(df["Epoch"], df["Accuracy"], label="Training Accuracy", marker="o", color="blue")
 plt.plot(df["Epoch"], df["Val Accuracy"], label="Validation Accuracy", marker="o", color="green")
 
-# Add titles and labels
 plt.title("Model Accuracy Over Epochs")
 plt.xlabel("Epochs")
 plt.ylabel("Accuracy")
 plt.legend(loc="lower right")
 
-# Save the graph to a file
 plt.savefig("accuracy_over_epochs_1.png")
 plt.show()
