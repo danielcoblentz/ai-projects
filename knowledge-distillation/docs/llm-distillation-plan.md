@@ -8,13 +8,12 @@ This document replaces it with one task that can actually be run and interpreted
 
 ## The question
 
-On MNIST, distillation lost.
-The distilled student came in 0.17 points below a control student of identical architecture trained on hard labels alone (98.96% against 99.13%), with the teacher at 99.21%.
-
-The uninteresting reading is that the run was underpowered, and it was: one seed, and a 0.17 point gap sits inside normal run-to-run variance.
-The more interesting reading is that MNIST is the wrong place to look.
+On MNIST with the full training set, distillation did not help.
+Over five paired seeds the distilled student came in 0.09 ± 0.11 points below a control student of identical architecture trained on hard labels alone (98.99% against 99.08%, p = 0.146), with the teacher at 99.10%.
+With only 1,000 training images the same setup gained 0.76 ± 0.30 points on every seed, and on IMDB, where the teacher sits at 87%, distillation gained 1.70 points on every seed.
+The reading is that MNIST at full size is the wrong place to look.
 A teacher's soft targets are supposed to carry information the hard label does not, the relative probability of the wrong classes, what Hinton calls dark knowledge.
-On a task where the teacher is already at 99.21% and nearly every prediction is a confident one-hot, there is almost nothing in the soft target that the hard label does not already say.
+On a task where the teacher is already at 99.10% and nearly every prediction is a confident one-hot, there is almost nothing in the soft target that the hard label does not already say.
 Ten classes, near-saturated accuracy, no headroom.
 
 So the question this project would answer:
@@ -28,7 +27,7 @@ A reasoning task with a chain of thought is a good place to test that, for reaso
 - The hard target is one reference solution. It says nothing about the other correct solutions, and a student trained only on it is penalised for valid reasoning that happens to be worded differently. The teacher distribution does not penalise that.
 - The task is nowhere near saturated at 0.5B, so there is room to move.
 
-That is the thread worth pulling: distillation lost on a saturated classification task, and the hypothesis is that it loses there specifically because the soft target degenerates to the hard one.
+That is the thread worth pulling: distillation did not help on a saturated classification task but did once the task had headroom, and the hypothesis is that it fails on the saturated one specifically because the soft target degenerates to the hard one.
 
 ## Scope
 
@@ -68,7 +67,7 @@ If the distilled arm trains on teacher-generated solutions and the control train
 Same tokens, different loss. That is the whole design.
 
 Three seeds per arm, minimum.
-The MNIST run failed precisely because one seed cannot resolve the effect being measured, and repeating that mistake at 100x the compute cost would be worse, not better.
+The first MNIST run could not resolve its effect with one seed, and repeating that mistake at 100x the compute cost would be worse, not better.
 Report mean and spread, and treat any gap smaller than the seed spread as no effect.
 
 Hyperparameters start at the repo's existing `T = 4.0` and `alpha = 0.7`, inherited from the classifier experiments so there is a defensible starting point rather than a tuned one.
@@ -100,7 +99,7 @@ The tail mass the student never sees is exactly the part of the dark knowledge t
 Committed before the runs, so the bar cannot move afterwards:
 
 - Supports the hypothesis: the distilled student beats the hard-label control on GSM8K exact match by more than the seed-to-seed spread of either arm, across three seeds. A gap of 2 points or more with a spread under 1 point would be convincing.
-- Falsifies it: the control matches or beats the distilled student, with the same seed discipline. This would say the MNIST result was not an artefact of saturation, and that token-level KD does not buy anything over training on the same teacher-generated text with plain cross entropy. That is a real result and should be written up as one rather than buried.
+- Falsifies it: the control matches or beats the distilled student, with the same seed discipline. This would say the full data MNIST result was not an artefact of saturation, and that token-level KD does not buy anything over training on the same teacher-generated text with plain cross entropy. That is a real result and should be written up as one rather than buried.
 - Inconclusive: gap smaller than the seed spread. Then the honest report is that the experiment was still underpowered, and the next move is more seeds, not a louder claim.
 
 The failure mode to guard against is concluding that distillation worked when what actually worked was training on correct teacher-generated solutions.
