@@ -4,6 +4,7 @@ from distillation.losses import (
     distillation_loss,
     hard_loss,
     kl_divergence,
+    log_softmax,
     soft_loss,
     softmax,
 )
@@ -12,6 +13,7 @@ __all__ = [
     "distillation_loss",
     "hard_loss",
     "kl_divergence",
+    "log_softmax",
     "soft_loss",
     "softmax",
 ]
